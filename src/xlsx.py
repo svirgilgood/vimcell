@@ -6,8 +6,7 @@ import subprocess as sp
 
 
 def xlsx2csv(xlfile, filename):
-    editor = os.environ.get('EDITOR', 'vim -p')
-    dirname = filename.replace('.xlsx', '') + '.vcell'
+    dirname = filename.replace('.xlsx', '').replace('.xls', '') + '.vcell'
     print(dirname)
     try:
         os.mkdir(dirname)
