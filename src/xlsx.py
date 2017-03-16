@@ -19,6 +19,7 @@ def xlsx2csv(xlfile, filename):
         csv = open(sheet.replace(' ', '_') + '.csv', 'w')
         for rw in range(0, xlfile.sheet_by_name(sheet).nrows):
             values = xlfile.sheet_by_name(sheet).row_values(rw)
+            values = [str(x) for x in values]
             new_values = ', '.join(values) + '\n'
             csv.write(new_values)
         csv.close()
