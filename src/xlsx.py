@@ -3,6 +3,16 @@
 import xlrd, xlsxwriter
 import os, sys
 import subprocess as sp
+import shlex
+import glob 
+
+
+def openvim(dirname):
+    os.chdir(dirname)
+    args = shlex.split('vim -p ' + ' '.join(glob.glob('*')))
+    #sp.call(args)
+    sp.Popen(args).wait()
+    sys.exit()
 
 
 def xlsx2csv(xlfile, filename):
@@ -11,9 +21,7 @@ def xlsx2csv(xlfile, filename):
     try:
         os.mkdir(dirname)
     except FileExistsError:
-        os.chdir(dirname)
-        os.system('vim -p ' + ' '.join(os.listdir('.')))
-        sys.exit()
+        openvim(dirname)
     os.chdir(dirname)
     for sheet in xlfile.sheet_names():
         csv = open(sheet.replace(' ', '_') + '.csv', 'w')
@@ -23,15 +31,29 @@ def xlsx2csv(xlfile, filename):
             new_values = ', '.join(values) + '\n'
             csv.write(new_values)
         csv.close()
-    print(os.listdir('.'))
-    var = ' '.join(os.listdir('.'))
-    os.system('vim -p ' + var)
-    #sp.Popen(['vim', '-p'] + os.listdir('.'))
+    args = shlex.split('vim -p ' + ' '.join(glob.glob('*')))
+    #os.system('vim -p ' + var)
+    sp.call(args)
 
-'''
+
 def csv2xlsx(directory):
-
-'''
+    workbook = xlsxwriter.Workbook('new' + directory.replace('.vcell', '.xlsx'))
+    #try:
+    owd = os.getcwd()
+    os.chdir(directory)
+    #except IsAFileError:
+    for sheet in glob.glob('*.csv'):
+        working_sheet = workbook.add_worksheet(sheet.replace('.csv', ''))
+        sheet = open(sheet)
+        row = 0
+        for line in sheet:
+            line = [x.strip() for x in line.split(',')] #line.strip().split(',')
+            for x in line:
+                working_sheet.write(row, line.index(x), x)
+            row += 1
+       # row = 0
+    os.chdir(owd)
+    workbook.close()
 
 
 def main():
@@ -44,9 +66,16 @@ def main():
     a = ap.parse_args()
     if a.xlsx:
         xlsx_filename = a.workbook.pop()
-        xlsxwb = xlrd.open_workbook(xlsx_filename)
+        try: 
+            xlsxwb = xlrd.open_workbook(xlsx_filename)
+        except IsADirectoryError:
+            openvim(xlsx_filename)
         xlsx2csv(xlsxwb, xlsx_filename)
-
+    if a.csv:
+        dirname = a.workbook.pop()
+        csv2xlsx(dirname)
+    else:
+        openvim(a.workbook.pop())
 
 
 if __name__ == '__main__':
